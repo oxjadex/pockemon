@@ -1,10 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import styled from "styled-components";
-import background from "../assets/dd.jpeg";
+import background from "../assets/dld.jpeg";
+import Hangul from "hangul-js";
 
 const PokemonList = () => {
   const [pokemonData, setPokemonData] = useState([]);
+  const [filterPokemon, setFilterPokemon] = useState([]);
+  const [keyword, setKeyword] = useState("");
+
+  const decomposeHangul = (str) => {
+    return Hangul.disassemble(str).join("");
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -32,57 +39,114 @@ const PokemonList = () => {
         });
       }
       setPokemonData(allPokemonData);
+      setFilterPokemon(allPokemonData);
     };
 
     fetchData();
   }, []);
 
-  const renderPokemonList = () => {
-    return pokemonData.map((pokemon) => (
+  useEffect(() => {
+    const filtering = () => {
+      if (keyword.length === 0) {
+        setFilterPokemon([...pokemonData]);
+      } else {
+        const docomposekeyword = decomposeHangul(keyword);
+        const filterList = pokemonData.filter(
+          (pokemon) =>
+            decomposeHangul(pokemon.korean_name).includes(docomposekeyword)
+          // const filterList = pokemonData.filter((pokemon) =>
+          //   decomposeHangul(pokemon.korean_name).includes(decomposeHangul(keyword))
+          // keyword를 한 번만 호출하니 선언해주는 게 더 좋은 코드
+        );
+        setFilterPokemon([...filterList]);
+      }
+    };
+
+    filtering();
+  }, [keyword, pokemonData]);
+
+  // useMemo를 써서 성능 계산
+  const renderPokemonList = useMemo(() => {
+    return filterPokemon.map((pokemon) => (
       <PokemonContainer key={pokemon.id}>
         <PokemonImg src={pokemon.sprites.front_default} alt={pokemon.name} />
-        <p>{pokemon.korean_name}</p>
-        <p>ID: ({pokemon.id})</p>
+        <PokemonName>{pokemon.korean_name}</PokemonName>
+        <PokemonId>ID: {pokemon.id}</PokemonId>
       </PokemonContainer>
     ));
-  };
+  }, [filterPokemon]);
 
-  return <Pokemon>{renderPokemonList()}</Pokemon>;
+  return (
+    <PokemonBackground>
+      <SearchBox>
+        <input
+          type="text"
+          value={keyword}
+          className="searchInput"
+          placeholder="포켓몬 이름을 입력해주세요"
+          onChange={(e) => setKeyword(e.target.value)}
+        />
+      </SearchBox>
+      <PokemonContainerWrapper>{renderPokemonList()}</PokemonContainerWrapper>
+    </PokemonBackground>
+  );
 };
 
-const Pokemon = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  margin: 0;
-  padding: 0;
-  background: url(${background}) center center;
+const PokemonBackground = styled.div`
+  background: url(${background}) center center fixed;
   background-size: cover;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
+  padding: 200px;
+`;
+
+const SearchBox = styled.div`
+  margin-bottom: 20px;
+  .searchInput {
+    padding: 15px 10px;
+    font-size: 16px;
+    width: 300px;
+    border: 1px solid #0026ff;
+    border-radius: 6px;
+  }
+`;
+
+const PokemonContainerWrapper = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px;
 `;
 
 const PokemonContainer = styled.div`
-  flex: 0 0 calc(25% - 20px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin: 10px;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  text-align: center;
+  padding: 20px;
   background: rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
   transition: transform 0.2s ease-in-out;
 
   &:hover {
     transform: scale(1.05);
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   }
 `;
 
 const PokemonImg = styled.img`
   width: 150px;
+`;
+
+const PokemonName = styled.p`
+  font-weight: bold;
+  margin: 10px 0;
+`;
+
+const PokemonId = styled.p`
+  color: #666;
 `;
 
 export default PokemonList;
