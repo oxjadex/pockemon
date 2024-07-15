@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import axios from "axios";
 import styled from "styled-components";
-import background from "../assets/dld.jpeg";
+import background from "../assets/background.jpeg";
 import Hangul from "hangul-js";
 import debounce from "lodash.debounce";
 
@@ -144,7 +144,7 @@ const PokemonContainer = styled.div`
   flex-direction: column;
   align-items: center;
   padding: 20px;
-  background: rgba(255, 255, 255, 0.8);
+  /* background: rgba(255, 255, 255, 0.8); */
   border-radius: 8px;
   transition: transform 0.2s ease-in-out;
 
