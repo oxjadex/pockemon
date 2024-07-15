@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import styled from "styled-components";
+import background from "../assets/dd.jpeg";
 
 const PokemonList = () => {
   const [pokemonData, setPokemonData] = useState([]);
@@ -32,46 +33,56 @@ const PokemonList = () => {
       }
       setPokemonData(allPokemonData);
     };
+
     fetchData();
   }, []);
 
   const renderPokemonList = () => {
     return pokemonData.map((pokemon) => (
-      <Container>
-        <PokemonContainer>
-          <div key={pokemon.id}>
-            <img src={pokemon.sprites.front_default} alt={pokemon.name} />
-            <p>{pokemon.korean_name}</p>
-            <p>ID: ({pokemon.id})</p>
-          </div>
-        </PokemonContainer>
-      </Container>
+      <PokemonContainer key={pokemon.id}>
+        <PokemonImg src={pokemon.sprites.front_default} alt={pokemon.name} />
+        <p>{pokemon.korean_name}</p>
+        <p>ID: ({pokemon.id})</p>
+      </PokemonContainer>
     ));
   };
 
-  return <div>{renderPokemonList()}</div>;
+  return <Pokemon>{renderPokemonList()}</Pokemon>;
 };
 
-export default PokemonList;
-
-const Container = styled.div`
+const Pokemon = styled.div`
   display: flex;
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 0;
+  background: url(${background}) center center;
+  background-size: cover;
   justify-content: center;
-  flex-direction: row;
-  margin: 10px;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  text-align: center;
+  align-items: center;
+  min-height: 100vh;
 `;
 
 const PokemonContainer = styled.div`
+  flex: 0 0 calc(25% - 20px);
   display: flex;
-  justify-content: center;
-  flex-direction: row;
+  flex-direction: column;
+  align-items: center;
   margin: 10px;
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 8px;
   text-align: center;
+  background: rgba(255, 255, 255, 0.8);
+  transition: transform 0.2s ease-in-out;
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
 `;
+
+const PokemonImg = styled.img`
+  width: 150px;
+`;
+
+export default PokemonList;
