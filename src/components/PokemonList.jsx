@@ -4,6 +4,7 @@ import styled from "styled-components";
 import background from "../assets/background.jpeg";
 import Hangul from "hangul-js";
 import debounce from "lodash.debounce";
+import { useNavigate } from "react-router-dom";
 
 const PokemonList = () => {
   const [pokemonData, setPokemonData] = useState([]);
@@ -13,6 +14,8 @@ const PokemonList = () => {
 
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate();
 
   const decomposeHangul = (str) => {
     return Hangul.disassemble(str).join("");
@@ -51,9 +54,10 @@ const PokemonList = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+      const { scrollTop, scrollHeight, clientHeight } =
+        document.documentElement;
       const isBottom = scrollTop + clientHeight >= scrollHeight - 100;
-      if (isBottom &&!loading) {
+      if (isBottom && !loading) {
         setPage((prevPage) => prevPage + 1);
       }
     };
@@ -82,9 +86,16 @@ const PokemonList = () => {
     }
   }, [keyword, pokemonData, filtering]);
 
+  const handlePokemonClick = (id) => {
+    navigate(`/pokemon/${id}`);
+  };
+
   const renderPokemonList = useMemo(() => {
     return filterPokemon.map((pokemon) => (
-      <PokemonContainer key={pokemon.id}>
+      <PokemonContainer
+        key={pokemon.id}
+        onClick={() => handlePokemonClick(pokemon.id)}
+      >
         <PokemonImg src={pokemon.sprites.front_default} alt={pokemon.name} />
         <PokemonName>{pokemon.korean_name}</PokemonName>
         <PokemonId>ID: {pokemon.id}</PokemonId>
@@ -163,7 +174,7 @@ const PokemonName = styled.p`
 `;
 
 const PokemonId = styled.p`
-  color: #666;
+  color: white;
 `;
 
 const LoadMoreButton = styled.button`
