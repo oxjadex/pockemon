@@ -16,7 +16,7 @@ const PokemonList = () => {
   useEffect(() => {
     const fetchData = async () => {
       const requests = [];
-      for (let i = 1; i <= 30; i++) {
+      for (let i = 200; i <= 300; i++) {
         requests.push(axios.get(`https://pokeapi.co/api/v2/pokemon/${i}`));
         requests.push(
           axios.get(`https://pokeapi.co/api/v2/pokemon-species/${i}`)
@@ -87,7 +87,8 @@ const PokemonList = () => {
           onChange={(e) => setKeyword(e.target.value)}
         />
       </SearchBox>
-      <PokemonContainerWrapper>{renderPokemonList()}</PokemonContainerWrapper>
+      <PokemonContainerWrapper>{renderPokemonList}</PokemonContainerWrapper>
+      {/* useMemo는 useEffect 처럼 홤수자체가 아니라 계산된 값을 넘겨줌 */}
     </PokemonBackground>
   );
 };
