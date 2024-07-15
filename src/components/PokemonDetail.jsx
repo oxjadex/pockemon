@@ -3,7 +3,7 @@ import axios from "axios";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
 import background from "../assets/background.jpeg";
-import pokemonBall from "../assets/images.webp";
+import pokemonBall from "../assets/pokemonball.png";
 import "../fonts/fonts.css";
 
 const PokemonDetail = () => {
