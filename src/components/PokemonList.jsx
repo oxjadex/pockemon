@@ -9,55 +9,69 @@ const PokemonList = () => {
   const [pokemonData, setPokemonData] = useState([]);
   const [filterPokemon, setFilterPokemon] = useState([]);
   const [keyword, setKeyword] = useState("");
+  const DATA_SIZE = 20;
+
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
 
   const decomposeHangul = (str) => {
     return Hangul.disassemble(str).join("");
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const requests = [];
-      for (let i = 200; i <= 300; i++) {
-        requests.push(axios.get(`https://pokeapi.co/api/v2/pokemon/${i}`));
-        requests.push(
-          axios.get(`https://pokeapi.co/api/v2/pokemon-species/${i}`)
+  const fetchPokemon = async (page) => {
+    setLoading(true);
+    const newPokemonData = [];
+    const startIndex = (page - 1) * DATA_SIZE + 1;
+    const endIndex = page * DATA_SIZE;
+
+    for (let i = startIndex; i <= endIndex; i++) {
+      try {
+        const response = await axios.get(
+          `https://pokeapi.co/api/v2/pokemon/${i}`
         );
-      }
-
-      const responses = await Promise.all(requests);
-      const allPokemonData = [];
-
-      for (let i = 0; i < responses.length; i += 2) {
-        const pokemonResponse = responses[i];
-        const speciesResponse = responses[i + 1];
+        const speciesResponse = await axios.get(
+          `https://pokeapi.co/api/v2/pokemon-species/${i}`
+        );
         const koreanName = speciesResponse.data.names.find(
           (name) => name.language.name === "ko"
         );
-
-        allPokemonData.push({
-          ...pokemonResponse.data,
-          korean_name: koreanName ? koreanName.name : "No name found",
-        });
+        newPokemonData.push({ ...response.data, korean_name: koreanName.name });
+      } catch (error) {
+        console.error(error);
       }
-      setPokemonData(allPokemonData);
-      setFilterPokemon(allPokemonData);
-    };
+    }
 
-    fetchData();
+    setPokemonData((prevData) => [...prevData, ...newPokemonData]);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchPokemon(page);
+  }, [page]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+      const isBottom = scrollTop + clientHeight >= scrollHeight - 100;
+      if (isBottom &&!loading) {
+        setPage((prevPage) => prevPage + 1);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
   const filtering = useCallback(
     debounce(() => {
-      const docomposekeyword = decomposeHangul(keyword);
-      const filterList = pokemonData.filter(
-        (pokemon) =>
-          decomposeHangul(pokemon.korean_name).includes(docomposekeyword)
-        // const filterList = pokemonData.filter((pokemon) =>
-        //   decomposeHangul(pokemon.korean_name).includes(decomposeHangul(keyword))
-        // keyword를 한 번만 호출하니 선언해주는 게 더 좋은 코드
+      const decomposedKeyword = decomposeHangul(keyword);
+      const filteredList = pokemonData.filter((pokemon) =>
+        decomposeHangul(pokemon.korean_name).includes(decomposedKeyword)
       );
-      setFilterPokemon([...filterList]);
-    }, 300), [(pokemonData, keyword)]
+      setFilterPokemon([...filteredList]);
+    }, 300),
+    [keyword, pokemonData]
   );
 
   useEffect(() => {
@@ -68,7 +82,6 @@ const PokemonList = () => {
     }
   }, [keyword, pokemonData, filtering]);
 
-  // useMemo를 써서 성능 계산
   const renderPokemonList = useMemo(() => {
     return filterPokemon.map((pokemon) => (
       <PokemonContainer key={pokemon.id}>
@@ -91,7 +104,7 @@ const PokemonList = () => {
         />
       </SearchBox>
       <PokemonContainerWrapper>{renderPokemonList}</PokemonContainerWrapper>
-      {/* useMemo는 useEffect 처럼 홤수자체가 아니라 계산된 값을 넘겨줌 */}
+      {loading && <p>Loading...</p>}
     </PokemonBackground>
   );
 };
@@ -151,6 +164,20 @@ const PokemonName = styled.p`
 
 const PokemonId = styled.p`
   color: #666;
+`;
+
+const LoadMoreButton = styled.button`
+  padding: 10px 20px;
+  background-color: #0026ff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: #0018a8;
+  }
 `;
 
 export default PokemonList;
