@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
+import background from "../assets/background.jpeg";
+import pokemonBall from "../assets/images.webp";
 
 const PokemonDetail = () => {
   const { id } = useParams();
@@ -42,22 +44,23 @@ const PokemonDetail = () => {
             return koreanMoveName ? koreanMoveName.name : move.move.name;
           })
         );
+
         const types = await Promise.all(
-          response.data.moves.map(async (type) => {
+          response.data.types.map(async (type) => {
             const typeResponse = await axios.get(type.type.url);
-            const koreanMoveName = typeResponse.data.names.find(
+            const koreanTypeName = typeResponse.data.names.find(
               (name) => name.language.name === "ko"
             );
-            return koreanMoveName ? koreanMoveName.name : type.type.name;
+            return koreanTypeName ? koreanTypeName.name : type.type.name;
           })
         );
 
         setPokemon({
           ...response.data,
           korean_name: koreanName.name,
-          korean_ability: koreanName.ability,
-          korean_moves: koreanName.moves,
-          korean_types: koreanName.types,
+          korean_abilities: abilities,
+          korean_moves: moves,
+          korean_types: types,
         });
         setLoading(false);
       } catch (error) {
@@ -68,41 +71,87 @@ const PokemonDetail = () => {
 
     fetchPokemon();
   }, [id]);
+
   if (loading) {
     return <p>Loading...</p>;
   }
+
+  if (!pokemon) {
+    return <p>Pokemon not found</p>;
+  }
+
   return (
-    <div>
+    <Container>
       <h1>
-        {pokemon.korean_name} (ID: {pokemon.id})
+        No.{pokemon.id} {pokemon.korean_name}
       </h1>
-      <img src={pokemon.sprites.front_default} alt={pokemon.korean_name} />
-      <h2>Types</h2>
-      <ul>
-        {pokemon.types.map((type, index) => (
-          <li key={index}>{type}</li>
-        ))}
-      </ul>
-      <h2>Abilities</h2>
-      <ul>
-        {pokemon.abilities.map((ability, index) => (
-          <li key={index}>{ability}</li>
-        ))}
-      </ul>
-      <h2>Moves</h2>
-      <ul>
-        {pokemon.moves.map((move, index) => (
-          <li key={index}>{move}</li>
-        ))}
-      </ul>
-    </div>
+      <PokemonImg
+        src={pokemon.sprites.front_default}
+        alt={pokemon.korean_name}
+      />
+      <TextContainer>
+        <span>키: {pokemon.height}</span>
+        <span>몸무게: {pokemon.weight}</span>
+        <PokemonListTitle>Types: </PokemonListTitle>
+        <PokemonListValue>
+          {pokemon.korean_types.map((type, index) => (
+            <span key={index}>{type} </span>
+          ))}
+        </PokemonListValue>
+        <PokemonListTitle>Abilities</PokemonListTitle>
+        <PokemonListValue>
+          {pokemon.korean_abilities.map((ability, index) => (
+            <span key={index}>{ability} </span>
+          ))}
+        </PokemonListValue>
+        <PokemonListTitle>Moves</PokemonListTitle>
+        <PokemonListValue>
+          {pokemon.korean_moves.map((move, index) => (
+            <span key={index}>{move} </span>
+          ))}
+        </PokemonListValue>
+      </TextContainer>
+      <PokemonBall src={pokemonBall} />
+    </Container>
   );
 };
 
 const Container = styled.div`
+  background: url(${background}) center center fixed;
+  background-size: cover;
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 20px 300px;
+  font-family: 'DOS';
+`;
+
+const PokemonImg = styled.img`
+  width: 300px;
+`;
+const TextContainer = styled.div`
+  padding: 50px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 20px;
+  width: 100%;
+`;
+const PokemonListTitle = styled.span`
+  font-weight: bold;
+`;
+const PokemonListValue = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+`;
+
+const PokemonBall = styled.img`
+  position: fixed;
+  bottom: 0%;
+  right: 0%;
 `;
 
 export default PokemonDetail;

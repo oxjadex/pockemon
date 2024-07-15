@@ -177,18 +177,4 @@ const PokemonId = styled.p`
   color: white;
 `;
 
-const LoadMoreButton = styled.button`
-  padding: 10px 20px;
-  background-color: #0026ff;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-
-  &:hover {
-    background-color: #0018a8;
-  }
-`;
-
 export default PokemonList;
