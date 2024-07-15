@@ -1,8 +1,9 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import axios from "axios";
 import styled from "styled-components";
 import background from "../assets/dld.jpeg";
 import Hangul from "hangul-js";
+import debounce from "lodash.debounce";
 
 const PokemonList = () => {
   const [pokemonData, setPokemonData] = useState([]);
@@ -45,25 +46,27 @@ const PokemonList = () => {
     fetchData();
   }, []);
 
+  const filtering = useCallback(
+    debounce(() => {
+      const docomposekeyword = decomposeHangul(keyword);
+      const filterList = pokemonData.filter(
+        (pokemon) =>
+          decomposeHangul(pokemon.korean_name).includes(docomposekeyword)
+        // const filterList = pokemonData.filter((pokemon) =>
+        //   decomposeHangul(pokemon.korean_name).includes(decomposeHangul(keyword))
+        // keyword를 한 번만 호출하니 선언해주는 게 더 좋은 코드
+      );
+      setFilterPokemon([...filterList]);
+    }, 300)[(pokemonData, keyword)]
+  );
+  
   useEffect(() => {
-    const filtering = () => {
-      if (keyword.length === 0) {
-        setFilterPokemon([...pokemonData]);
-      } else {
-        const docomposekeyword = decomposeHangul(keyword);
-        const filterList = pokemonData.filter(
-          (pokemon) =>
-            decomposeHangul(pokemon.korean_name).includes(docomposekeyword)
-          // const filterList = pokemonData.filter((pokemon) =>
-          //   decomposeHangul(pokemon.korean_name).includes(decomposeHangul(keyword))
-          // keyword를 한 번만 호출하니 선언해주는 게 더 좋은 코드
-        );
-        setFilterPokemon([...filterList]);
-      }
-    };
-
-    filtering();
-  }, [keyword, pokemonData]);
+    if (keyword.length === 0) {
+      setFilterPokemon([...pokemonData]);
+    } else {
+      filtering();
+    }
+  }, [keyword, pokemonData, filtering]);
 
   // useMemo를 써서 성능 계산
   const renderPokemonList = useMemo(() => {
