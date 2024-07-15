@@ -105,6 +105,7 @@ const PokemonList = () => {
 
   return (
     <PokemonBackground>
+      <Title>포켓몬 도감!</Title>
       <SearchBox>
         <input
           type="text"
@@ -128,18 +129,27 @@ const PokemonBackground = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 200px;
+  padding: 120px 200px;
   font-family: "DOSIyagiBoldface", sans-serif;
 `;
 
+const Title = styled.div`
+  display: flex;
+  justify-content: center;
+  text-align: center;
+  align-items: center;
+  font-size: 50px;
+  margin-bottom: 30px;
+`
 const SearchBox = styled.div`
   margin-bottom: 20px;
   .searchInput {
-    padding: 15px 10px;
+    padding: 15px 20px;
     font-size: 16px;
     width: 300px;
     border: 1px solid #0026ff;
     border-radius: 6px;
+    font-family: "DOSIyagiBoldface", sans-serif;
   }
 `;
 
@@ -161,7 +171,7 @@ const PokemonContainer = styled.div`
   transition: transform 0.2s ease-in-out;
 
   &:hover {
-    transform: scale(1.05);
+    transform: scale(1.2);
   }
 `;
 
