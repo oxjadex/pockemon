@@ -57,9 +57,9 @@ const PokemonList = () => {
         // keyword를 한 번만 호출하니 선언해주는 게 더 좋은 코드
       );
       setFilterPokemon([...filterList]);
-    }, 300)[(pokemonData, keyword)]
+    }, 300), [(pokemonData, keyword)]
   );
-  
+
   useEffect(() => {
     if (keyword.length === 0) {
       setFilterPokemon([...pokemonData]);
