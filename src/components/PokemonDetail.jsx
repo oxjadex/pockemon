@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import styled from "styled-components";
 import background from "../assets/background.jpeg";
 import pokemonBall from "../assets/images.webp";
+import "../fonts/fonts.css";
 
 const PokemonDetail = () => {
   const { id } = useParams();
@@ -82,9 +83,9 @@ const PokemonDetail = () => {
 
   return (
     <Container>
-      <h1>
+      <PokemonName>
         No.{pokemon.id} {pokemon.korean_name}
-      </h1>
+      </PokemonName>
       <PokemonImg
         src={pokemon.sprites.front_default}
         alt={pokemon.korean_name}
@@ -122,8 +123,12 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px 300px;
-  font-family: 'DOS';
+  padding: 50px 300px;
+  font-family: "DOSIyagiBoldface", sans-serif;
+`;
+
+const PokemonName = styled.div`
+  font-size: 30px;
 `;
 
 const PokemonImg = styled.img`

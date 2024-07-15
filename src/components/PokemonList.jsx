@@ -129,6 +129,7 @@ const PokemonBackground = styled.div`
   justify-content: center;
   align-items: center;
   padding: 200px;
+  font-family: "DOSIyagiBoldface", sans-serif;
 `;
 
 const SearchBox = styled.div`
