@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
+import { useRecoilState } from "recoil";
+import { favoritePokemonState } from "../recoil/atom";
 import axios from "axios";
 import styled from "styled-components";
 import background from "../assets/background.jpeg";
@@ -14,6 +16,8 @@ const PokemonList = () => {
 
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+
+  const [favorites, setFavorites] = useRecoilState(favoritePokemonState);
 
   const navigate = useNavigate();
 
@@ -65,16 +69,17 @@ const PokemonList = () => {
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
-  }, []);
+  }, [loading]);
 
   const filtering = useCallback(
-    debounce(() => {
-      const decomposedKeyword = decomposeHangul(keyword);
-      const filteredList = pokemonData.filter((pokemon) =>
-        decomposeHangul(pokemon.korean_name).includes(decomposedKeyword)
-      );
-      setFilterPokemon([...filteredList]);
-    }, 300),
+    () =>
+      debounce(() => {
+        const decomposedKeyword = decomposeHangul(keyword);
+        const filteredList = pokemonData.filter((pokemon) =>
+          decomposeHangul(pokemon.korean_name).includes(decomposedKeyword)
+        );
+        setFilterPokemon([...filteredList]);
+      }, 300),
     [keyword, pokemonData]
   );
 
@@ -86,11 +91,21 @@ const PokemonList = () => {
     }
   }, [keyword, pokemonData, filtering]);
 
-  const handlePokemonClick = (id) => {
-    navigate(`/pokemon/${id}`);
-  };
-
   const renderPokemonList = useMemo(() => {
+    const handleFavoriteClick = (e, pokemon) => {
+      e.stopPropagation();
+      setFavorites((prevFavorites) => {
+        if (prevFavorites.some((fav) => fav.id === pokemon.id)) {
+          return prevFavorites.filter((fav) => fav.id !== pokemon.id);
+        } else {
+          return [...prevFavorites, pokemon];
+        }
+      });
+    };
+
+    const handlePokemonClick = (id) => {
+      navigate(`/pokemon/${id}`);
+    };
     return filterPokemon.map((pokemon) => (
       <PokemonContainer
         key={pokemon.id}
@@ -99,9 +114,12 @@ const PokemonList = () => {
         <PokemonImg src={pokemon.sprites.front_default} alt={pokemon.name} />
         <PokemonName>{pokemon.korean_name}</PokemonName>
         <PokemonId>ID: {pokemon.id}</PokemonId>
+        <LikeButton onClick={(e) => handleFavoriteClick(e, pokemon)}>
+          {favorites.some((fav) => fav.id === pokemon.id) ? "★" : "☆"}
+        </LikeButton>
       </PokemonContainer>
     ));
-  }, [filterPokemon]);
+  }, [filterPokemon, favorites, setFavorites, navigate]);
 
   return (
     <PokemonBackground>
@@ -166,7 +184,6 @@ const PokemonContainer = styled.div`
   flex-direction: column;
   align-items: center;
   padding: 20px;
-  /* background: rgba(255, 255, 255, 0.8); */
   border-radius: 8px;
   transition: transform 0.2s ease-in-out;
 
@@ -174,7 +191,9 @@ const PokemonContainer = styled.div`
     transform: scale(1.2);
   }
 `;
-
+const LikeButton = styled.div`
+  cursor: pointer;
+`;
 const PokemonImg = styled.img`
   width: 150px;
 `;

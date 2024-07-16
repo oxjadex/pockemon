@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { useRecoilState } from "recoil";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { favoritePokemonState } from "../recoil/atom";
 import styled from "styled-components";
 import background from "../assets/background.jpeg";
 import pokemonBall from "../assets/pokemonball.png";
@@ -13,6 +15,23 @@ const PokemonDetail = () => {
   const [loading, setLoading] = useState(true);
   const [visible, setVisible] = useState(false);
 
+  const [favorites, setFavorites] = useRecoilState(favoritePokemonState);
+  const navigate = useNavigate();
+
+  const handleFavoriteClick = (pokemon) => {
+    setFavorites((prevFavorites) => {
+      if (prevFavorites.some((fav) => fav.id === pokemon.id)) {
+        return prevFavorites.filter((fav) => fav.id !== pokemon.id);
+      } else {
+        return [...prevFavorites, pokemon];
+      }
+    });
+  };
+
+  const handleGoBackButtonClick = () => {
+    navigate(`/`);
+  };
+
   useEffect(() => {
     const fetchPokemon = async () => {
       try {
@@ -22,6 +41,10 @@ const PokemonDetail = () => {
         const speciesResponse = await axios.get(
           `https://pokeapi.co/api/v2/pokemon-species/${id}`
         );
+        const evolutionChainResponse = await axios.get(
+          speciesResponse.data.evolution_chain.url
+        );
+
         const koreanName = speciesResponse.data.names.find(
           (name) => name.language.name === "ko"
         );
@@ -58,12 +81,17 @@ const PokemonDetail = () => {
           })
         );
 
+        const evolutionChain = parseEvolutionChain(
+          evolutionChainResponse.data.chain
+        );
+
         setPokemon({
           ...response.data,
           korean_name: koreanName.name,
           korean_abilities: abilities,
           korean_moves: moves,
           korean_types: types,
+          evolution_chain: evolutionChain,
         });
         setLoading(false);
       } catch (error) {
@@ -83,6 +111,19 @@ const PokemonDetail = () => {
     setVisible(false);
   };
 
+  const parseEvolutionChain = (chain) => {
+    const evolutionChain = [];
+    let currentChain = chain;
+
+    while (currentChain) {
+      const pokemonId = currentChain.species.url.split("/").slice(-2, -1)[0];
+      evolutionChain.push(pokemonId);
+      currentChain = currentChain.evolves_to[0];
+    }
+
+    return evolutionChain;
+  };
+
   if (loading) {
     return <p>Loading...</p>;
   }
@@ -93,42 +134,53 @@ const PokemonDetail = () => {
 
   return (
     <Container>
-      {visible && (
-        <ChatModal
-          pokemonName={pokemon.korean_name}
-          handleClose={closeChatModal}
+      <SystemContainer>
+        <GoBackButton onClick={handleGoBackButtonClick}>뒤로가기</GoBackButton>
+      </SystemContainer>
+      <PokemonContent>
+        <LikeButton onClick={() => handleFavoriteClick(pokemon)}>
+          {favorites.some((fav) => fav.id === pokemon.id) ? "★" : "☆"}
+        </LikeButton>
+        {visible && (
+          <ChatModal
+            pokemonName={pokemon.korean_name}
+            handleClose={closeChatModal}
+          />
+        )}
+        <PokemonName>
+          No.{pokemon.id} {pokemon.korean_name}
+        </PokemonName>
+        <PokemonImg
+          src={pokemon.sprites.front_default}
+          alt={pokemon.korean_name}
         />
-      )}
-      <PokemonName>
-        No.{pokemon.id} {pokemon.korean_name}
-      </PokemonName>
-      <PokemonImg
-        src={pokemon.sprites.front_default}
-        alt={pokemon.korean_name}
-      />
-      <TextContainer>
-        <span>키: {pokemon.height}</span>
-        <span>몸무게: {pokemon.weight}</span>
-        <PokemonListTitle>Types: </PokemonListTitle>
-        <PokemonListValue>
-          {pokemon.korean_types.map((type, index) => (
-            <span key={index}>{type} </span>
-          ))}
-        </PokemonListValue>
-        <PokemonListTitle>Abilities</PokemonListTitle>
-        <PokemonListValue>
-          {pokemon.korean_abilities.map((ability, index) => (
-            <span key={index}>{ability} </span>
-          ))}
-        </PokemonListValue>
-        <PokemonListTitle>Moves</PokemonListTitle>
-        <PokemonListValue>
-          {pokemon.korean_moves.map((move, index) => (
-            <span key={index}>{move} </span>
-          ))}
-        </PokemonListValue>
-      </TextContainer>
-      <PokemonBall onClick={showChatModal} src={pokemonBall} />
+        <span>......오잉!?</span>
+        <span>{pokemon.korean_name}의 상태가......?</span>
+        <br />
+        <TextContainer>
+          <span>키: {pokemon.height}</span>
+          <span>몸무게: {pokemon.weight}</span>
+          <PokemonListTitle>Types: </PokemonListTitle>
+          <PokemonListValue>
+            {pokemon.korean_types.map((type, index) => (
+              <span key={index}>{type} </span>
+            ))}
+          </PokemonListValue>
+          <PokemonListTitle>Abilities</PokemonListTitle>
+          <PokemonListValue>
+            {pokemon.korean_abilities.map((ability, index) => (
+              <span key={index}>{ability} </span>
+            ))}
+          </PokemonListValue>
+          <PokemonListTitle>Moves</PokemonListTitle>
+          <PokemonListValue>
+            {pokemon.korean_moves.map((move, index) => (
+              <span key={index}>{move} </span>
+            ))}
+          </PokemonListValue>
+        </TextContainer>
+        <PokemonBall onClick={showChatModal} src={pokemonBall} />
+      </PokemonContent>
     </Container>
   );
 };
@@ -139,8 +191,29 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 50px 300px;
+  padding: 50px;
   font-family: "DOSIyagiBoldface", sans-serif;
+`;
+
+const SystemContainer = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+`;
+
+const PokemonContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 50%;
+`;
+
+const GoBackButton = styled.button`
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: "DOSIyagiBoldface", sans-serif;
+  color: white;
 `;
 
 const PokemonName = styled.div`
@@ -149,6 +222,11 @@ const PokemonName = styled.div`
 
 const PokemonImg = styled.img`
   width: 300px;
+`;
+
+const LikeButton = styled.div`
+  cursor: pointer;
+  margin-bottom: 20px;
 `;
 
 const TextContainer = styled.div`
