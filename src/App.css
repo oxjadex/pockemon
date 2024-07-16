@@ -1,3 +1,35 @@
 body {
   font-family: "DOSIyagiBoldface", sans-serif;
 }
+
+@keyframes evolution {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.evolution-effect {
+  animation: evolution 1s forwards;
+}
+
+.fade-in {
+  animation: fadeIn 1s forwards;
+}

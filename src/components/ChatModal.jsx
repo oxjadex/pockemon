@@ -6,7 +6,6 @@ const ChatModal = ({ pokemonName, handleClose }) => {
   const [questions, setQuestions] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState("");
   const [openai, setOpenai] = useState(null);
-  const APIKEY = process.env.API_KEY;
 
   const scrollRef = useRef(null);
 

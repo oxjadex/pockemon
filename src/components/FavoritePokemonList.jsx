@@ -1,12 +1,15 @@
+// src/components/PokemonDetail.js
+
 import React, { useState, useEffect } from "react";
 import { useRecoilState } from "recoil";
 import axios from "axios";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { favoritePokemonState } from "../recoil/atom";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import background from "../assets/background.jpeg";
 import pokemonBall from "../assets/pokemonball.png";
 import ChatModal from "./ChatModal";
+import FavoritePokemonList from "./FavoritePokemonList";
 import "../fonts/fonts.css";
 
 const PokemonDetail = () => {
@@ -29,7 +32,8 @@ const PokemonDetail = () => {
         setTimeout(() => {
           const nextEvolutionId = evolutionChain[currentEvolutionIndex + 1];
           navigate(`/pokemon/${nextEvolutionId}`);
-        }, 500); // 1초 동안 애니메이션 재생 후 이동
+        }, 500); // 0.5초 동안 애니메이션 재생 후 이동
+        setCurrentEvolutionIndex(currentEvolutionIndex + 1);
       } else {
         alert("이 포켓몬은 최종 진화 형태입니다!");
         setShowText(false);
@@ -160,6 +164,7 @@ const PokemonDetail = () => {
     <Container>
       <SystemContainer>
         <GoBackButton onClick={handleGoBackButtonClick}>뒤로가기</GoBackButton>
+        <Link to="/favorites">내가 찜한 포켓몬</Link>
       </SystemContainer>
       <PokemonContent>
         <LikeButton onClick={() => handleFavoriteClick(pokemon)}>
@@ -230,6 +235,8 @@ const SystemContainer = styled.div`
   width: 100%;
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
 `;
 
 const PokemonContent = styled.div`
@@ -237,6 +244,10 @@ const PokemonContent = styled.div`
   flex-direction: column;
   align-items: center;
   width: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 20px;
+  border-radius: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 `;
 
 const GoBackButton = styled.button`
@@ -247,8 +258,14 @@ const GoBackButton = styled.button`
   color: white;
 `;
 
+const LikeButton = styled.div`
+  cursor: pointer;
+  margin-bottom: 20px;
+`;
+
 const PokemonName = styled.div`
   font-size: 30px;
+  margin-bottom: 10px;
 `;
 
 const PokemonImg = styled.img`
@@ -260,19 +277,11 @@ const HiddenText = styled.div`
   margin-bottom: 20px;
 `;
 
-const LikeButton = styled.div`
-  cursor: pointer;
-  margin-bottom: 20px;
-`;
-
 const TextContainer = styled.div`
-  padding: 50px;
+  padding: 20px;
   display: flex;
-  align-items: center;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 20px;
-  width: 100%;
+  align-items: center;
 `;
 
 const PokemonListTitle = styled.span`
@@ -281,8 +290,7 @@ const PokemonListTitle = styled.span`
 
 const PokemonListValue = styled.div`
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  flex-wrap: wrap;
   gap: 5px;
 `;
 
