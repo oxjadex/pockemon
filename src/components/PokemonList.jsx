@@ -140,7 +140,7 @@ const Title = styled.div`
   align-items: center;
   font-size: 50px;
   margin-bottom: 30px;
-`
+`;
 const SearchBox = styled.div`
   margin-bottom: 20px;
   .searchInput {

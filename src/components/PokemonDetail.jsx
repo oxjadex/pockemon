@@ -4,12 +4,14 @@ import { useParams } from "react-router-dom";
 import styled from "styled-components";
 import background from "../assets/background.jpeg";
 import pokemonBall from "../assets/pokemonball.png";
+import ChatModal from "./ChatModal";
 import "../fonts/fonts.css";
 
 const PokemonDetail = () => {
   const { id } = useParams();
   const [pokemon, setPokemon] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     const fetchPokemon = async () => {
@@ -73,6 +75,14 @@ const PokemonDetail = () => {
     fetchPokemon();
   }, [id]);
 
+  const showChatModal = () => {
+    setVisible(true);
+  };
+
+  const closeChatModal = () => {
+    setVisible(false);
+  };
+
   if (loading) {
     return <p>Loading...</p>;
   }
@@ -83,6 +93,12 @@ const PokemonDetail = () => {
 
   return (
     <Container>
+      {visible && (
+        <ChatModal
+          pokemonName={pokemon.korean_name}
+          handleClose={closeChatModal}
+        />
+      )}
       <PokemonName>
         No.{pokemon.id} {pokemon.korean_name}
       </PokemonName>
@@ -112,7 +128,7 @@ const PokemonDetail = () => {
           ))}
         </PokemonListValue>
       </TextContainer>
-      <PokemonBall src={pokemonBall} />
+      <PokemonBall onClick={showChatModal} src={pokemonBall} />
     </Container>
   );
 };
@@ -134,6 +150,7 @@ const PokemonName = styled.div`
 const PokemonImg = styled.img`
   width: 300px;
 `;
+
 const TextContainer = styled.div`
   padding: 50px;
   display: flex;
@@ -143,9 +160,11 @@ const TextContainer = styled.div`
   border-radius: 20px;
   width: 100%;
 `;
+
 const PokemonListTitle = styled.span`
   font-weight: bold;
 `;
+
 const PokemonListValue = styled.div`
   display: flex;
   flex-direction: column;
@@ -155,8 +174,10 @@ const PokemonListValue = styled.div`
 
 const PokemonBall = styled.img`
   position: fixed;
-  bottom: 0%;
-  right: 0%;
+  bottom: 20px;
+  right: 20px;
+  width: 100px;
+  cursor: pointer;
 `;
 
 export default PokemonDetail;
