@@ -1,23 +1,45 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import { OpenAI } from "openai";
 
 const ChatModal = ({ pokemonName, handleClose }) => {
-  const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState("");
+  const [questions, setQuestions] = useState([]);
+  const [currentQuestion, setCurrentQuestion] = useState("");
+  const [openai, setOpenai] = useState(null);
   const APIKEY = process.env.API_KEY;
 
+  const scrollRef = useRef(null);
+
+  useEffect(() => {
+    setOpenai(
+      new OpenAI({
+        apiKey: APIKEY,
+        dangerouslyAllowBrowser: true,
+      })
+    );
+  }, [APIKEY]);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [questions]);
+
   const handleQuestionChange = (e) => {
-    setQuestion(e.target.value);
+    setCurrentQuestion(e.target.value);
   };
 
-  const openai = new OpenAI({
-    apiKey: APIKEY,
-    dangerouslyAllowBrowser: true,
-  });
-
   const handleQuestionSubmit = async () => {
-    if (question.trim() === "") return;
+    if (currentQuestion.trim() === "") return;
+
+    const newQuestion = {
+      question: currentQuestion,
+      answer: "",
+      isLoading: true,
+    };
+
+    setQuestions([...questions, newQuestion]); // 이전 질문 배열에 새 질문 추가
+    setCurrentQuestion(""); // 현재 질문 초기화
 
     try {
       const response = await openai.chat.completions.create({
@@ -25,22 +47,18 @@ const ChatModal = ({ pokemonName, handleClose }) => {
         messages: [
           {
             role: "user",
-            content: question,
+            content: currentQuestion,
           },
         ],
       });
-      setAnswer(response.choices[0].message.content);
+
+      newQuestion.answer = response.choices[0].message.content;
     } catch (error) {
       console.error("Error:", error);
-      if (error.response) {
-        if (error.response.status === 429) {
-          console.log("요청 제한 초과");
-        } else {
-          console.log("답변을 가져오는 중 오류 발생");
-        }
-      } else {
-        console.log("네트워크 오류");
-      }
+      newQuestion.answer = "답변을 가져오는 중 오류 발생";
+    } finally {
+      newQuestion.isLoading = false;
+      setQuestions([...questions, newQuestion]); // 마지막 질문 상태 업데이트
     }
   };
 
@@ -51,19 +69,28 @@ const ChatModal = ({ pokemonName, handleClose }) => {
           <ModalTitle>{pokemonName}에 대해 물어보세요~</ModalTitle>
           <ModalCloseButton onClick={handleClose}>X</ModalCloseButton>
         </ModalTitleContainer>
+        <ModalQuestionContainer ref={scrollRef}>
+          {questions.map((q, index) => (
+            <ModalQA key={index}>
+              <ModalQuestion>{q.question}</ModalQuestion>
+              {q.isLoading && <ModalAnswer>loading...</ModalAnswer>}
+              {!q.isLoading && <ModalAnswer>{q.answer}</ModalAnswer>}
+            </ModalQA>
+          ))}
+        </ModalQuestionContainer>
         <ModalInputContainer>
           <ModalInput
             placeholder="질문을 입력해주세요"
-            value={question}
+            value={currentQuestion}
             onChange={handleQuestionChange}
           />
           <ModalButton onClick={handleQuestionSubmit}>전송</ModalButton>
         </ModalInputContainer>
-        <ModalAnswer>{answer}</ModalAnswer>
       </ChatModalContainer>
     </ChatModalOverlay>
   );
 };
+
 export default ChatModal;
 
 const ChatModalOverlay = styled.div`
@@ -78,7 +105,6 @@ const ChatModalOverlay = styled.div`
   justify-content: center;
   align-items: center;
 `;
-
 const ChatModalContainer = styled.div`
   display: flex;
   background: rgba(255, 255, 255, 0.8);
@@ -102,13 +128,47 @@ const ModalCloseButton = styled.button`
   cursor: pointer;
 `;
 
+const ModalQuestionContainer = styled.div`
+  max-height: 300px;
+  width: 500px;
+  overflow-y: auto; /* scroll로 변경 */
+  padding: 10px;
+  align-self: flex-end; // 추가
+`;
+
+const ModalQA = styled.div`
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+  gap: 10px;
+  width: 100%;
+`;
+
+const ModalQuestion = styled.div`
+  font-size: 18px;
+  background: rgba(0, 0, 255);
+  color: white;
+  padding: 10px;
+  border-radius: 10px;
+  max-width: 80%;
+  align-self: flex-end; // 추가
+`;
+
+const ModalAnswer = styled.div`
+  font-size: 18px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 10px;
+  border-radius: 10px;
+  max-width: 80%;
+  align-self: flex-start; // 추가
+`;
 const ModalTitle = styled.h2`
   text-align: center;
 `;
 
 const ModalInputContainer = styled.div`
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end; // 변경
   gap: 20px;
 `;
 
@@ -138,9 +198,4 @@ const ModalButton = styled.button`
     transform: scale(0.9);
     transition: transform 0.3s ease-in-out;
   }
-`;
-
-const ModalAnswer = styled.div`
-  width: 600px;
-  height: 100%;
 `;
