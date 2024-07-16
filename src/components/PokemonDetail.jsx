@@ -3,7 +3,7 @@ import { useRecoilState } from "recoil";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { favoritePokemonState } from "../recoil/atom";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import background from "../assets/background.jpeg";
 import pokemonBall from "../assets/pokemonball.png";
 import ChatModal from "./ChatModal";
@@ -18,6 +18,7 @@ const PokemonDetail = () => {
   const [evolutionChain, setEvolutionChain] = useState([]);
   const [currentEvolutionIndex, setCurrentEvolutionIndex] = useState(0);
   const [evolving, setEvolving] = useState(false);
+  const [fadeScreen, setFadeScreen] = useState(false); // 추가
 
   const [favorites, setFavorites] = useRecoilState(favoritePokemonState);
   const navigate = useNavigate();
@@ -26,10 +27,14 @@ const PokemonDetail = () => {
     if (showText) {
       if (currentEvolutionIndex < evolutionChain.length - 1) {
         setEvolving(true);
+        setFadeScreen(true); // 클릭 시 화면을 하얗게 만듦
         setTimeout(() => {
           const nextEvolutionId = evolutionChain[currentEvolutionIndex + 1];
           navigate(`/pokemon/${nextEvolutionId}`);
-        }, 500); // 1초 동안 애니메이션 재생 후 이동
+        }, 1000); // 1초 동안 애니메이션 재생 후 이동
+        setTimeout(() => {
+          setFadeScreen(false); // 클릭 시 화면을 하얗게 만듦
+        }, 1000);
       } else {
         alert("이 포켓몬은 최종 진화 형태입니다!");
         setShowText(false);
@@ -158,6 +163,7 @@ const PokemonDetail = () => {
 
   return (
     <Container>
+      {fadeScreen && <FadeScreen />} {/* 화면이 하얗게 되는 효과 */}
       <SystemContainer>
         <GoBackButton onClick={handleGoBackButtonClick}>뒤로가기</GoBackButton>
       </SystemContainer>
@@ -254,6 +260,42 @@ const PokemonName = styled.div`
 const PokemonImg = styled.img`
   width: 300px;
   cursor: pointer;
+  transition: transform 0.5s ease-in-out;
+
+  &.evolution-effect {
+    animation: evolve 0.5s ease-in-out;
+  }
+
+  @keyframes evolve {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.2);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+`;
+
+const FadeScreen = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  animation: fade 1s linear;
+
+  @keyframes fade {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
 `;
 
 const HiddenText = styled.div`

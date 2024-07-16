@@ -92,6 +92,7 @@ const PokemonList = () => {
   }, [keyword, pokemonData, filtering]);
 
   const renderPokemonList = useMemo(() => {
+    
     const handleFavoriteClick = (e, pokemon) => {
       e.stopPropagation();
       setFavorites((prevFavorites) => {
@@ -106,6 +107,7 @@ const PokemonList = () => {
     const handlePokemonClick = (id) => {
       navigate(`/pokemon/${id}`);
     };
+
     return filterPokemon.map((pokemon) => (
       <PokemonContainer
         key={pokemon.id}
@@ -121,6 +123,10 @@ const PokemonList = () => {
     ));
   }, [filterPokemon, favorites, setFavorites, navigate]);
 
+  const handleFavoritePokemonClick = () => {
+    navigate(`/favoritePokemonList`);
+  };
+
   return (
     <PokemonBackground>
       <Title>포켓몬 도감!</Title>
@@ -133,6 +139,9 @@ const PokemonList = () => {
           onChange={(e) => setKeyword(e.target.value)}
         />
       </SearchBox>
+      <FavoritePokemonButton onClick={handleFavoritePokemonClick}>
+        내가 좋아하는 포켓몬
+      </FavoritePokemonButton>
       <PokemonContainerWrapper>{renderPokemonList}</PokemonContainerWrapper>
       {loading && <p>Loading...</p>}
     </PokemonBackground>
@@ -159,6 +168,7 @@ const Title = styled.div`
   font-size: 50px;
   margin-bottom: 30px;
 `;
+
 const SearchBox = styled.div`
   margin-bottom: 20px;
   .searchInput {
@@ -170,6 +180,8 @@ const SearchBox = styled.div`
     font-family: "DOSIyagiBoldface", sans-serif;
   }
 `;
+
+const FavoritePokemonButton = styled.div``;
 
 const PokemonContainerWrapper = styled.div`
   display: flex;
